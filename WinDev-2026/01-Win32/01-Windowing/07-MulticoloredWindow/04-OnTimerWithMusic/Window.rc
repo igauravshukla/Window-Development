@@ -1,0 +1,4 @@
+#include "Window.h"
+
+GCS_ICON ICON Onedrive.ico
+GCS_BIRTHDAY_MUSIC WAVE birthday.wav

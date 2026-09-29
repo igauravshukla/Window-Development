@@ -1,0 +1,201 @@
+// Header Files
+#include<windows.h>		// This is the most important header file of Win32 SDK
+
+// including our own header file
+#include "Window.h"
+
+// Global Declaration of Windows Procedure Callback Function
+LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+
+// Entry-point Function
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int iCmdShow)
+{
+	// variable declaration
+	WNDCLASSEX myWindowClass;									// structure 
+	TCHAR szMyWindowClassName[] = TEXT("Gaurav's Window");
+	HWND hwnd = NULL;
+	MSG msg;													// structure
+
+	// code
+
+	// initializing our Window Class
+	ZeroMemory((void*)&myWindowClass, sizeof(WNDCLASSEX));
+	// instead of ZeroMemory, we can use memset() as follows:
+	//memset((void*)&myWindowClass, 0, sizeof(WNDCLASSEX));
+
+	// cbSize - count of bytes of size of this structure (size of structure in bytes)
+	myWindowClass.cbSize = sizeof(WNDCLASSEX);
+
+	// CS stands for class style
+	// if resize the window (horizontally / vertically), redraw the window
+	myWindowClass.style = CS_HREDRAW | CS_VREDRAW;
+
+	// extra information about this window class
+	myWindowClass.cbClsExtra = 0;
+
+	// extra information about one window of this window class
+	myWindowClass.cbWndExtra = 0;
+
+	// long pointer to Window Procedure function (callback method)
+	// this is registering the callback function 
+	myWindowClass.lpfnWndProc = WndProc;
+
+	// long pointer to zero terminated string which is class name
+	myWindowClass.lpszClassName = szMyWindowClassName;
+
+	// long pointer to zero terminated string which is menu name
+	// as of now there is no menu to our window, hence null
+	myWindowClass.lpszMenuName = NULL;
+
+	// handle to brush which used to color the background of the window
+	myWindowClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+
+	// handle of the instance of this process 
+	myWindowClass.hInstance = hInstance;
+
+	// handle to cursor 
+	myWindowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+
+	// handle to large icon 
+	myWindowClass.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(GCS_ICON));
+
+	// handle to small icon (list view)
+	myWindowClass.hIconSm = LoadIcon(hInstance, MAKEINTRESOURCE(GCS_ICON));
+
+	// Register the above Window class
+	RegisterClassEx(&myWindowClass);
+
+	// Create the Window IN MEMORY ONLY 
+	hwnd = CreateWindow(szMyWindowClassName,		// class name 
+		TEXT("Gaurav WindDev-2026  First Window"),	// window caption bar text
+		WS_OVERLAPPEDWINDOW,						// window style 
+		CW_USEDEFAULT,								// window top left x co-ordinate 
+		CW_USEDEFAULT,								// window top left y co-ordinate 
+		CW_USEDEFAULT,								// width of the window 
+		CW_USEDEFAULT,								// height of the window 
+		NULL,										// handle to parent window of this window (NULL means not known)
+		NULL,										// handle to menu of this window (NULL means not having anything)
+		hInstance,									// handle of the process instance which is hosting this window 
+		NULL);										// ??
+
+	// Show the Window on desktop 
+	ShowWindow(hwnd, SW_SHOWDEFAULT);
+
+	// Update the Window (color the background) 
+	UpdateWindow(hwnd);
+
+	// Message Loop
+	while (GetMessage(&msg, NULL, 0, 0))
+	{
+		// Translate or simplify the Message
+		TranslateMessage(&msg);
+
+		// Dispatch or post the message to WndProc()
+		DispatchMessage(&msg);
+	}
+
+	return((int)msg.wParam);
+}
+
+// Defining Window Procedure Callback Function
+LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
+{
+	// variable declarations
+	char ch = '\0';
+	unsigned int clickXCoord = 0;
+	unsigned int clickYCoord = 0;
+	TCHAR str[255];
+	// code
+	switch (iMsg)
+	{
+	case WM_CREATE:			// WM_CREATE Message Handler
+		MessageBox(	hwnd,
+					TEXT("WM_CREATE Message Received."),
+					TEXT("Message"),
+					MB_OK | MB_ICONINFORMATION);
+		break;
+	case WM_LBUTTONDOWN:	// left mouse button message handler
+		clickXCoord = LOWORD(lParam);	// x-co-ordinate of window where left mouse button is pressed
+		clickYCoord = HIWORD(lParam);	// y-co-ordinate of window where left mouse button is pressed
+		wsprintf(str, TEXT("Left mouse button clicked at : (%u, %u)"), clickXCoord, clickYCoord);
+		MessageBox(	hwnd,
+					str,
+					TEXT("WM_LBUTTONDOWN MESSAGE"),
+					MB_OK | MB_ICONINFORMATION);
+		break;
+	case WM_RBUTTONDOWN:
+		clickXCoord = LOWORD(lParam);	// x-co-ordinate of window where right mouse button is pressed
+		clickYCoord = HIWORD(lParam);	// y-co-ordinate of window where right mouse button is pressed
+		wsprintf(str, TEXT("Right mouse button clicked at : (%u, %u)"), clickXCoord, clickYCoord);
+		MessageBox(	hwnd,
+					str,
+					TEXT("WM_RBUTTONDOWN MESSAGE"),
+					MB_OK | MB_ICONINFORMATION);
+		break;
+	case WM_KEYDOWN:
+		switch (wParam)
+		{
+		case VK_ESCAPE:
+			DestroyWindow(hwnd);
+			break;
+		case 0x41:
+			MessageBox(	hwnd,
+						TEXT("Hexadecimal 0x41 is for key A"),
+						TEXT("WM_KEYDOWN MESSAGE"),
+						MB_OK | MB_ICONINFORMATION);
+			break;
+		case 0x5A:
+			MessageBox(	hwnd,
+						TEXT("Hexadecimal 0x5A is for key Z"),
+						TEXT("WM_KEYDOWN MESSAGE"),
+						MB_OK | MB_ICONINFORMATION);
+			break;
+		case VK_SPACE:
+			break;
+		case VK_ADD:
+			break;
+		case VK_SUBTRACT:
+			break;
+		default:
+			break;
+		}
+		break;
+	case WM_CHAR:			// specific message handler for character buttons
+		switch (wParam)
+		{
+		case 'A':
+			MessageBox(	hwnd,
+						TEXT("Hexadecimal 0x41 is for key A"),
+						TEXT("WM_CHAR MESSAGE"),
+						MB_OK | MB_ICONINFORMATION);
+			break;
+		case 'Z':
+			MessageBox(	hwnd,
+						TEXT("Hexadecimal 0x5A is for key Z"),
+						TEXT("WM_CHAR MESSAGE"),
+						MB_OK | MB_ICONINFORMATION);
+			break;
+		default:
+			ch = wParam;
+			wsprintf(str, TEXT("%c character key pressed."), ch);
+			MessageBox(	hwnd,
+						str,
+						TEXT("WM_CHAR MESSAGE"),
+						MB_OK | MB_ICONINFORMATION);
+			break;
+		}
+		break;
+	case WM_DESTROY:		// WM_DESTROY Message Handler
+		MessageBox(	hwnd,
+					TEXT("WM_DESTROY Message Received."),
+					TEXT("Message"),
+					MB_OK | MB_ICONINFORMATION);
+		PostQuitMessage(0);
+		break;
+	default:
+		break;
+	}
+
+	// Forward the message to Default Window Procedure
+	return(DefWindowProc(hwnd, iMsg, wParam, lParam));
+}

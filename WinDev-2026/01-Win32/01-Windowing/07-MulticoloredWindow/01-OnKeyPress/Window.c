@@ -1,0 +1,250 @@
+// Header Files
+#include<windows.h>		// This is the most important header file of Win32 SDK
+
+// including our own header file
+#include "Window.h"
+
+// Global Declaration of Windows Procedure Callback Function
+LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+
+// Entry-point Function
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int iCmdShow)
+{
+	// variable declaration
+	WNDCLASSEX myWindowClass;									// structure 
+	TCHAR szMyWindowClassName[] = TEXT("Gaurav's Window");
+	HWND hwnd = NULL;
+	MSG msg;													// structure
+
+	// code
+
+	// initializing our Window Class
+	ZeroMemory((void*)&myWindowClass, sizeof(WNDCLASSEX));
+	// instead of ZeroMemory, we can use memset() as follows:
+	//memset((void*)&myWindowClass, 0, sizeof(WNDCLASSEX));
+
+	// cbSize - count of bytes of size of this structure (size of structure in bytes)
+	myWindowClass.cbSize = sizeof(WNDCLASSEX);
+
+	// CS stands for class style
+	// if resize the window (horizontally / vertically), redraw the window
+	myWindowClass.style = CS_HREDRAW | CS_VREDRAW;
+
+	// extra information about this window class
+	myWindowClass.cbClsExtra = 0;
+
+	// extra information about one window of this window class
+	myWindowClass.cbWndExtra = 0;
+
+	// long pointer to Window Procedure function (callback method)
+	// this is registering the callback function 
+	myWindowClass.lpfnWndProc = WndProc;
+
+	// long pointer to zero terminated string which is class name
+	myWindowClass.lpszClassName = szMyWindowClassName;
+
+	// long pointer to zero terminated string which is menu name
+	// as of now there is no menu to our window, hence null
+	myWindowClass.lpszMenuName = NULL;
+
+	// handle to brush which used to color the background of the window
+	myWindowClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+
+	// handle of the instance of this process 
+	myWindowClass.hInstance = hInstance;
+
+	// handle to cursor 
+	myWindowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+
+	// handle to large icon 
+	myWindowClass.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(GCS_ICON));
+
+	// handle to small icon (list view)
+	myWindowClass.hIconSm = LoadIcon(hInstance, MAKEINTRESOURCE(GCS_ICON));
+
+	// Register the above Window class
+	RegisterClassEx(&myWindowClass);
+
+	// Create the Window IN MEMORY ONLY 
+	hwnd = CreateWindow(szMyWindowClassName,		// class name 
+		TEXT("Gaurav WinDev-2026 First Window"),	// window caption bar text
+		WS_OVERLAPPEDWINDOW,						// window style 
+		CW_USEDEFAULT,								// window top left x co-ordinate 
+		CW_USEDEFAULT,								// window top left y co-ordinate 
+		CW_USEDEFAULT,								// width of the window 
+		CW_USEDEFAULT,								// height of the window 
+		NULL,										// handle to parent window of this window (NULL means not known)
+		NULL,										// handle to menu of this window (NULL means not having anything)
+		hInstance,									// handle of the process instance which is hosting this window 
+		NULL);										// ??
+
+	// Show the Window on desktop 
+	ShowWindow(hwnd, SW_SHOWDEFAULT);
+
+	// Update the Window (color the background) 
+	UpdateWindow(hwnd);
+
+	// Message Loop
+	while (GetMessage(&msg, NULL, 0, 0))
+	{
+		// Translate or simplify the Message
+		TranslateMessage(&msg);
+
+		// Dispatch or post the message to WndProc()
+		DispatchMessage(&msg);
+	}
+
+	return((int)msg.wParam);
+}
+
+// Defining Window Procedure Callback Function
+LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
+{
+	// variable declarations
+
+	// structure to rectangle 
+	RECT rect;
+	// handle to device context (painter) 
+	HDC hdc = NULL;
+	// structure to paint 
+	PAINTSTRUCT ps;
+	static char chColorFlag = '\0';
+	HBRUSH hBrush = NULL;
+
+	// code
+	switch (iMsg)
+	{
+	case WM_CREATE:			// this is message handler for WM_CREATE msg
+		break;
+	case WM_PAINT:			// this is message handler for WM_PAINT msg
+		// zero-out the RECT structure
+		ZeroMemory((void*)&rect, sizeof(RECT));
+
+		// get the client area rectangle of your window 
+		GetClientRect(hwnd, &rect);
+
+		// zero-out the PAINTSTRUCT structure
+		ZeroMemory((void*)&ps, sizeof(PAINTSTRUCT));
+
+		// get the painter to paint for your window
+		hdc = BeginPaint(hwnd, &ps);
+
+		// create brush of desired color
+		switch (chColorFlag)
+		{
+		// Red color
+		case 'R':
+		case 'r':
+			hBrush = CreateSolidBrush(RGB(255, 0, 0));
+			break;
+		// Green color
+		case 'G':
+		case 'g':
+			hBrush = CreateSolidBrush(RGB(0, 255, 0));
+			break;
+		// Blue color
+		case 'B':
+		case 'b':
+			hBrush = CreateSolidBrush(RGB(0, 0, 255));
+			break;
+		// Cyan color
+		case 'C':
+		case 'c':
+			hBrush = CreateSolidBrush(RGB(0, 255, 255));
+			break;
+		// Magenta color
+		case 'M':
+		case 'm':
+			hBrush = CreateSolidBrush(RGB(255, 0, 255));
+			break;
+		// Yellow color
+		case 'Y':
+		case 'y':
+			hBrush = CreateSolidBrush(RGB(255, 255, 0));
+			break;
+		// Orange color
+		case 'O':
+		case 'o':
+			hBrush = CreateSolidBrush(RGB(255, 128, 0));
+			break;
+		// Violet color
+		case 'V':
+		case 'v':
+			hBrush = CreateSolidBrush(RGB(128, 128, 255));
+			break;
+		// White color
+		case 'W':
+		case 'w':
+			hBrush = CreateSolidBrush(RGB(255, 255, 255));
+			break;
+		// Black color
+		default:
+			hBrush = CreateSolidBrush(RGB(0, 0, 0));
+			break;
+		}
+
+		// Give this newly created brush to the painter hdc (select this new brush)
+		SelectObject(hdc, hBrush);
+
+		// Now, fill the client area rectangle with the selected brush color
+		FillRect(hdc, &rect, hBrush);
+
+		// Now delete the brush
+		if (hBrush)
+		{
+			DeleteObject(hBrush);
+			hBrush = NULL;
+		}
+
+		// release the painter 
+		if (hdc)
+		{
+			EndPaint(hwnd, &ps);
+			hdc = NULL;
+		}
+		break;
+	case WM_KEYDOWN:
+		switch (wParam)
+		{
+		case VK_ESCAPE:
+			DestroyWindow(hwnd);
+			break;
+		default:
+			break;
+		}
+		break;
+	case WM_CHAR:
+		chColorFlag = wParam;
+		
+		// Now explictly call WM_PAINT for the pressed character key
+		// This method POSTS WM_PAINT
+		InvalidateRect(hwnd, NULL, TRUE);
+		break;
+	case WM_DESTROY:		// this is message handler for WM_DESTROY msg
+		PostQuitMessage(0);
+		break;
+	default:
+		break;
+	}
+
+	// Forward the message to Default Window Procedure
+	return(DefWindowProc(hwnd, iMsg, wParam, lParam));
+}
+
+/*
+Q. 8 cases when repainting must be done for window?
+1. When window is first ever created
+2. When another window was overlapping with your window is now uncovering your window
+3. When system menu is now uncovering your window
+4. When icon is moved across your window
+5. When mouse cursor is moved across your window
+6. When another window is moved across your window OR your own window is moved
+7. When your own window is resized
+8. When scrolling is done
+
+
+HDC - part of gdi32.dll
+
+Remind Mam to tell about why message box is not supposed to add in 
+WM_SIZE and WM_PAINT and WM_MOUSEMOVE during DLL lecture. 
+*/
