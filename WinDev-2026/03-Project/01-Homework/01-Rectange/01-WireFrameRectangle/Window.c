@@ -5,8 +5,8 @@
 #include "Window.h"
 
 // Defining rectangle width as constant
-#define RECTANGLE_WIDTH		400
-#define RECTANGLE_HEIGHT	400
+#define DEFAULT_RECT_WIDTH		400
+#define DEFAULT_RECT_HEIGHT		400
 
 // Define constant colors
 #define BACKGROUND_BLACK_COLOR	RGB(0, 0, 0)
@@ -87,7 +87,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 		NULL);										// ??
 
 	// Show the Window on desktop 
-	ShowWindow(hwnd, SW_SHOWDEFAULT);
+	ShowWindow(hwnd, SW_MAXIMIZE);
 
 	// Update the Window (color the background) 
 	UpdateWindow(hwnd);
@@ -110,7 +110,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
 	// variable declarations 
 
-	// structure to rectangle
+	// RECT structure for window (which is rectangle in shape) 
 	static RECT WindowRect;
 
 	// handle to device context (painter)
@@ -125,10 +125,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	static unsigned int windowWidth = 0;
 	static unsigned int windowHeight = 0;
 
-	static unsigned int rectangleCenterX = 0;
-	static unsigned int rectangleCenterY = 0;
+	static unsigned int rectangleWidth = DEFAULT_RECT_WIDTH;
+	static unsigned int rectangleHeight = DEFAULT_RECT_HEIGHT;
 
-	static RECT rectangleRect;
+	/*static unsigned int rectangleCenterX = 0;
+	static unsigned int rectangleCenterY = 0;*/
+	// Point structure used to have x and y co-ordinate of window center
+	static POINT windowCenter;
+
+	// RECT structure having co-ordinates for rendering the rectangle
+	static RECT rectangle;
 
 	// code
 	switch (iMsg)
@@ -160,16 +166,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			Comment the SelectObject() of hBrush_Background
 			Uncomment following code:
 			//SelectObject(hdc, hBrush_Background);
-			//FillRect(hdc, &rectangleRect, hBrush_Background);
+			//FillRect(hdc, &rectangle, hBrush_Background);
 		*/
 
-		ZeroMemory((void*)&rectangleRect, sizeof(RECT));
-		rectangleRect.left = rectangleCenterX - (RECTANGLE_WIDTH / 2);
-		rectangleRect.top = rectangleCenterY - (RECTANGLE_HEIGHT / 2);
-		rectangleRect.right = rectangleCenterX + (RECTANGLE_WIDTH / 2);
-		rectangleRect.bottom = rectangleCenterY + (RECTANGLE_HEIGHT / 2);
+		/*ZeroMemory((void*)&rectangle, sizeof(RECT));
+		rectangle.left = windowCenter.x - (DEFAULT_RECT_WIDTH / 2);
+		rectangle.top = windowCenter.y - (DEFAULT_RECT_HEIGHT / 2);
+		rectangle.right = windowCenter.x + (DEFAULT_RECT_WIDTH / 2);
+		rectangle.bottom = windowCenter.y + (DEFAULT_RECT_HEIGHT / 2);*/
 
-		Rectangle(hdc, rectangleRect.left, rectangleRect.top, rectangleRect.right, rectangleRect.bottom);
+		Rectangle(hdc, rectangle.left, rectangle.top, rectangle.right, rectangle.bottom);
 
 		// Now delete the brush for rectangle
 		if (hPen_Rectangle)
@@ -200,12 +206,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		// get the client area rectangle of your window
 		GetClientRect(hwnd, &WindowRect);
 
-		windowWidth = WindowRect.right - WindowRect.left;
-		windowHeight = WindowRect.bottom - WindowRect.top;
+		/*windowWidth = WindowRect.right - WindowRect.left;
+		windowHeight = WindowRect.bottom - WindowRect.top;*/
+		windowWidth = LOWORD(lParam);
+		windowHeight = HIWORD(lParam);
 
 		// set the center of window as center of rectangle
-		rectangleCenterX = windowWidth / 2;
-		rectangleCenterY = windowHeight / 2;
+		/*rectangleCenterX = windowWidth / 2;
+		rectangleCenterY = windowHeight / 2;*/
+		windowCenter.x = windowWidth / 2;
+		windowCenter.y = windowHeight / 2;
+
+		ZeroMemory((void*)&rectangle, sizeof(RECT));
+		rectangle.left = windowCenter.x - (DEFAULT_RECT_WIDTH / 2);
+		rectangle.right = windowCenter.x + (DEFAULT_RECT_WIDTH / 2);
+		rectangle.top = windowCenter.y - (DEFAULT_RECT_HEIGHT / 2);
+		rectangle.bottom = windowCenter.y + (DEFAULT_RECT_HEIGHT / 2);
 		break;
 
 	case WM_DESTROY:

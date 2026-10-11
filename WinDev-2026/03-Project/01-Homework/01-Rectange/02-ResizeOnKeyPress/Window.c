@@ -5,8 +5,8 @@
 #include "Window.h"
 
 // Defining rectangle width as constant
-#define RECTANGLE_WIDTH		400
-#define RECTANGLE_HEIGHT	400
+#define DEFAULT_RECT_WIDTH		400
+#define DEFAULT_RECT_HEIGHT		400
 
 // Define constant colors
 #define BACKGROUND_BLACK_COLOR	RGB(0, 0, 0)
@@ -87,7 +87,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 		NULL);										// ??
 
 	// Show the Window on desktop 
-	ShowWindow(hwnd, SW_SHOWDEFAULT);
+	ShowWindow(hwnd, SW_MAXIMIZE);
 
 	// Update the Window (color the background) 
 	UpdateWindow(hwnd);
@@ -110,7 +110,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
 	// variable declarations 
 
-	// structure to rectangle
+	// RECT structure for window (which is rectangle in shape) 
 	static RECT WindowRect;
 
 	// handle to device context (painter)
@@ -122,13 +122,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	HBRUSH hBrush_Background = NULL;
 	HPEN hPen_Rectangle = NULL;
 
+	// members to hold the window width and height
 	static unsigned int windowWidth = 0;
 	static unsigned int windowHeight = 0;
 
-	static unsigned int rectangleCenterX = 0;
-	static unsigned int rectangleCenterY = 0;
+	// members to hold the updated rectangle width and height
+	static unsigned int rectangleWidth = DEFAULT_RECT_WIDTH;
+	static unsigned int rectangleHeight = DEFAULT_RECT_HEIGHT;
 
-	static RECT rectangleRect;
+	// Point structure used to have x and y co-ordinate of window center
+	static POINT windowCenter;
+
+	// RECT structure having co-ordinates for rendering the rectangle
+	static RECT rectangle;
 
 	// code
 	switch (iMsg)
@@ -155,21 +161,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		// Give this newly created rectangle brush to the painter hdc (select this new brush)
 		SelectObject(hdc, hPen_Rectangle);
 
-		/*
-			Alternative approach for only filling internal rectangle background color:
-			Comment the SelectObject() of hBrush_Background
-			Uncomment following code:
-			//SelectObject(hdc, hBrush_Background);
-			//FillRect(hdc, &rectangleRect, hBrush_Background);
-		*/
+		// Render Rectangle on UI
+		Rectangle(hdc, rectangle.left, rectangle.top, rectangle.right, rectangle.bottom);
 
-		ZeroMemory((void*)&rectangleRect, sizeof(RECT));
-		rectangleRect.left = rectangleCenterX - (RECTANGLE_WIDTH / 2);
-		rectangleRect.top = rectangleCenterY - (RECTANGLE_HEIGHT / 2);
-		rectangleRect.right = rectangleCenterX + (RECTANGLE_WIDTH / 2);
-		rectangleRect.bottom = rectangleCenterY + (RECTANGLE_HEIGHT / 2);
-
-		Rectangle(hdc, rectangleRect.left, rectangleRect.top, rectangleRect.right, rectangleRect.bottom);
+		// Recalculate the updated rectangle height and width
+		rectangleWidth = rectangle.right - rectangle.left;
+		rectangleHeight = rectangle.bottom - rectangle.top;
 
 		// Now delete the brush for rectangle
 		if (hPen_Rectangle)
@@ -200,15 +197,117 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		// get the client area rectangle of your window
 		GetClientRect(hwnd, &WindowRect);
 
-		windowWidth = WindowRect.right - WindowRect.left;
-		windowHeight = WindowRect.bottom - WindowRect.top;
+		windowWidth = LOWORD(lParam);
+		windowHeight = HIWORD(lParam);
 
 		// set the center of window as center of rectangle
-		rectangleCenterX = windowWidth / 2;
-		rectangleCenterY = windowHeight / 2;
+		windowCenter.x = windowWidth / 2;
+		windowCenter.y = windowHeight / 2;
+
+		ZeroMemory((void*)&rectangle, sizeof(RECT));
+		rectangle.left = windowCenter.x - (rectangleWidth / 2);
+		rectangle.top = windowCenter.y - (rectangleHeight / 2);
+		rectangle.right = windowCenter.x + (rectangleWidth / 2);
+		rectangle.bottom = windowCenter.y + (rectangleHeight / 2);
+		break;
+
+	case WM_KEYDOWN:
+		switch (wParam)
+		{
+		case VK_ESCAPE:
+			// Exit the application on escape key press
+			DestroyWindow(hwnd);
+			break;
+		case VK_SPACE:
+			// Reset the rectangle position by bringing it on center with default height and width
+			rectangleWidth = DEFAULT_RECT_WIDTH;
+			rectangleHeight = DEFAULT_RECT_HEIGHT;
+
+			ZeroMemory((void*)&rectangle, sizeof(RECT));
+			rectangle.left = windowCenter.x - (rectangleWidth / 2);
+			rectangle.top = windowCenter.y - (rectangleHeight / 2);
+			rectangle.right = windowCenter.x + (rectangleWidth / 2);
+			rectangle.bottom = windowCenter.y + (rectangleHeight / 2);
+
+			InvalidateRect(hwnd, NULL, TRUE);
+			break;
+		}
+		break;
+
+	case WM_CHAR:
+		switch (wParam)
+		{
+		case 'T':
+			// On T key press, the top edge of rectangle should go above by 20 pixels
+			rectangle.left = rectangle.left;
+			rectangle.top = rectangle.top - 20;
+			rectangle.right = rectangle.right;
+			rectangle.bottom = rectangle.bottom;
+			InvalidateRect(hwnd, NULL, TRUE);
+			break;
+		case 't':
+			// On t key press, the top edge of rectangle should go below by 20 pixels
+			rectangle.left = rectangle.left;
+			rectangle.top = rectangle.top + 20;
+			rectangle.right = rectangle.right;
+			rectangle.bottom = rectangle.bottom;
+			InvalidateRect(hwnd, NULL, TRUE);
+			break;
+		case 'B':
+			// On B key press, the bottom edge of rectangle should go below by 20 pixels
+			rectangle.left = rectangle.left;
+			rectangle.top = rectangle.top;
+			rectangle.right = rectangle.right;
+			rectangle.bottom = rectangle.bottom + 20;
+			InvalidateRect(hwnd, NULL, TRUE);
+			break;
+		case 'b':
+			// On b key press, the bottom edge of rectangle should go above by 20 pixels
+			rectangle.left = rectangle.left;
+			rectangle.top = rectangle.top;
+			rectangle.right = rectangle.right;
+			rectangle.bottom = rectangle.bottom - 20;
+			InvalidateRect(hwnd, NULL, TRUE);
+			break;
+		case 'L':
+			// On L key press, the left edge of rectangle should go left by 20 pixels
+			rectangle.left = rectangle.left - 20;
+			rectangle.top = rectangle.top;
+			rectangle.right = rectangle.right;
+			rectangle.bottom = rectangle.bottom;
+			InvalidateRect(hwnd, NULL, TRUE);
+			break;
+		case 'l':
+			// On l key press, the left edge of rectangle should go right by 20 pixels
+			rectangle.left = rectangle.left + 20;
+			rectangle.top = rectangle.top;
+			rectangle.right = rectangle.right;
+			rectangle.bottom = rectangle.bottom;
+			InvalidateRect(hwnd, NULL, TRUE);
+			break;
+		case 'R':
+			// On R key press, the right edge of rectangle should go right by 20 pixels
+			rectangle.left = rectangle.left;
+			rectangle.top = rectangle.top;
+			rectangle.right = rectangle.right + 20;
+			rectangle.bottom = rectangle.bottom;
+			InvalidateRect(hwnd, NULL, TRUE);
+			break;
+		case 'r':
+			// On r key press, the right edge of rectangle should go left by 20 pixels
+			rectangle.left = rectangle.left;
+			rectangle.top = rectangle.top;
+			rectangle.right = rectangle.right - 20;
+			rectangle.bottom = rectangle.bottom;
+			InvalidateRect(hwnd, NULL, TRUE);
+			break;
+		default:
+			break;
+		}
 		break;
 
 	case WM_DESTROY:
+		// Exit the application
 		PostQuitMessage(0);
 		break;
 
